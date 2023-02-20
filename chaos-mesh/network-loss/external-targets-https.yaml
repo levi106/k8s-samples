@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: alpine
+  name: alpine
+spec:
+  containers:
+  - args:
+    - alpine
+    image: alpine
+    command: ["/bin/sh", "-c", "--"]
+    args: ["trap : TERM INT; sleep 9999999999d & wait"]
+    name: alpine
+  restartPolicy: Never
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: network-loss
+  namespace: default
+spec:
+  action: loss
+  direction: to
+  duration: 1h
+  externalTargets:
+  - 0.0.0.0/1:443
+  - 128.0.0.0/1:443
+  loss:
+    correlation: "100"
+    loss: "100"
+  mode: all
+  selector:
+    labelSelectors:
+      run: alpine
+    namespaces:
+    - default
